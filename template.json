@@ -1,0 +1,102 @@
+{
+  "name": "two_product_with_background_top_half_v1",
+  "canvas": {
+    "width": 1.0,
+    "height": 1.0,
+    "_meta": "Canvas normalized to 1×1 units."
+  },
+
+  "elements": [
+    {
+      "type": "image",
+      "id": "background_top",
+      "x": 0.0,
+      "y": 0.0,
+      "width": 1.0,
+      "height": 0.5,
+      "mode": "cover",
+      "keepAspectRatio": true,
+      "_meta": {
+        "description": "User supplies a background image. It fills the top half of the poster using cover crop mode.",
+        "expected_input": "User background image."
+      }
+    },
+
+    {
+      "type": "image",
+      "id": "product_1",
+      "x": 0.203,
+      "y": 0.60,
+      "width": 0.252,
+      "height": null,
+      "keepAspectRatio": true,
+      "_meta": {
+        "description": "Left product image. Same width as previous template, centered left in poster.",
+        "expected_input": "User product image."
+      }
+    },
+
+    {
+      "type": "text",
+      "id": "subtitle_1",
+      "x": 0.203,
+      "y": "after_image",
+      "margin": 0.02,
+      "width": 0.252,
+      "fontSize": "user_defined",
+      "color": "user_defined",
+      "align": "center",
+      "multiLine": true,
+      "_meta": {
+        "description": "Subtitle under product_1. Renderer must place this text below the image with a 2% vertical margin.",
+        "expected_input": "User subtitle text."
+      }
+    },
+
+    {
+      "type": "image",
+      "id": "product_2",
+      "x": 0.545,
+      "y": 0.60,
+      "width": 0.252,
+      "height": null,
+      "keepAspectRatio": true,
+      "_meta": {
+        "description": "Right product image. Mirrored position of product_1.",
+        "expected_input": "User product image."
+      }
+    },
+
+    {
+      "type": "text",
+      "id": "subtitle_2",
+      "x": 0.545,
+      "y": "after_image",
+      "margin": 0.02,
+      "width": 0.252,
+      "fontSize": "user_defined",
+      "color": "user_defined",
+      "align": "center",
+      "multiLine": true,
+      "_meta": {
+        "description": "Subtitle under product_2. Renderer must place text below image with a 2% vertical margin.",
+        "expected_input": "User subtitle text."
+      }
+    },
+
+    {
+      "type": "text",
+      "id": "header",
+      "x": 0.10,
+      "y": 0.10,
+      "width": 0.80,
+      "fontSize": "user_defined",
+      "color": "user_defined",
+      "align": "center",
+      "_meta": {
+        "description": "Main header centered horizontally, positioned at 10% from the top.",
+        "expected_input": "User header text."
+      }
+    }
+  ]
+}
