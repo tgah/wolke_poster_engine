@@ -5,11 +5,9 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 import logging
 from pathlib import Path
-from contextlib import asynccontextmanager
-
 
 from app.config import get_settings
-from app.api import auth, products, posters, assets
+from app.api import auth, products, posters, assets, backgrounds
 from app.database import engine, Base
 
 # Configure logging
@@ -40,6 +38,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(auth.router)
+app.include_router(backgrounds.router)  # NEW: Background management
 app.include_router(products.router)
 app.include_router(posters.router)
 app.include_router(assets.router)
@@ -54,21 +53,13 @@ if settings.STORAGE_BACKEND == "local":
         name="assets"
     )
 
-# @asynccontextmanager
-# async def lifespan(app: FastAPI):
-#     # Startup logic
-#     print("Starting up...")
-#     yield
-#     # Shutdown logic
-#     print("Shutting down...")
 
 @app.on_event("startup")
 async def startup_event():
     """Initialize application on startup."""
     logger.info(f"Starting {settings.APP_NAME} v{settings.VERSION}")
-    
-    # Create tables (in production, use Alembic migrations)
-    # Base.metadata.create_all(bind=engine)
+    logger.info(f"Redis URL: {settings.CELERY_BROKER_URL}")
+    logger.info(f"Image Generator: {settings.IMAGE_GEN_PROVIDER}")
 
 
 @app.on_event("shutdown")
@@ -96,7 +87,6 @@ async def health_check():
     """Health check endpoint."""
     return {
         "status": "healthy",
-        "version": settings.VERSION
+        "version": settings.VERSION,
+        "image_provider": settings.IMAGE_GEN_PROVIDER
     }
-
-# app = FastAPI(lifespan=lifespan)

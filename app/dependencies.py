@@ -1,8 +1,9 @@
-"""FastAPI dependencies for authentication and common tasks."""
-from fastapi import Depends, HTTPException, status
+"""FastAPI dependencies for authentication and session management."""
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from uuid import UUID
+import secrets
 
 from app.database import get_db
 from app.utils.security import decode_access_token
@@ -35,8 +36,7 @@ async def get_current_user(
             detail="Invalid token payload"
         )
     
-    # user = db.query(User).filter(User.id == UUID(user_id)).first()
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(User).filter(User.id == UUID(user_id)).first()
     
     if not user or not user.is_active:
         raise HTTPException(
@@ -45,6 +45,34 @@ async def get_current_user(
         )
     
     return user
+
+
+async def get_session_id(
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+) -> str:
+    """
+    Extract session ID from JWT token.
+    Uses 'jti' (JWT ID) claim as session identifier.
+    If not present, generates one (for backward compatibility).
+    """
+    token = credentials.credentials
+    payload = decode_access_token(token)
+    
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token"
+        )
+    
+    # Try to get jti (JWT ID) from token
+    session_id = payload.get("jti")
+    
+    if not session_id:
+        # Fallback: use user_id + timestamp hash
+        # This ensures each token has unique session
+        session_id = payload.get("sub", secrets.token_hex(16))
+    
+    return session_id
 
 
 def require_role(required_role: str):

@@ -7,6 +7,7 @@ import pyotp
 import qrcode
 import io
 import base64
+import secrets
 from app.config import get_settings
 
 settings = get_settings()
@@ -26,7 +27,9 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-    """Create a JWT access token."""
+    """
+    Create a JWT access token with unique session ID.
+    """
     to_encode = data.copy()
     
     if expires_delta:
@@ -36,7 +39,15 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
     
-    to_encode.update({"exp": expire, "iat": datetime.utcnow()})
+    # Add jti (JWT ID) for session tracking
+    jti = secrets.token_hex(16)
+    
+    to_encode.update({
+        "exp": expire,
+        "iat": datetime.utcnow(),
+        "jti": jti  # Unique session identifier
+    })
+    
     encoded_jwt = jwt.encode(
         to_encode, 
         settings.SECRET_KEY, 

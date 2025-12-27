@@ -1,5 +1,5 @@
 """Rate limiting utilities."""
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, func
@@ -32,7 +32,7 @@ class RateLimiter:
             return True, None
         
         normalized = RateLimiter.normalize_theme(theme_text)
-        cooldown_threshold = datetime.utcnow() - timedelta(
+        cooldown_threshold = datetime.now(timezone.utc) - timedelta(
             seconds=settings.SAME_THEME_COOLDOWN_SECONDS
         )
         
@@ -51,14 +51,17 @@ class RateLimiter:
         ).first()
         
         if recent_job:
-            seconds_left = int(
-                (recent_job.requested_at + timedelta(
-                    seconds=settings.SAME_THEME_COOLDOWN_SECONDS
-                ) - datetime.utcnow()).total_seconds()
-            )
+            elapsed = (datetime.now(timezone.utc) - recent_job.requested_at).total_seconds()  # Fix here too
+            remaining = settings.SAME_THEME_COOLDOWN_SECONDS - elapsed
+            
+            # seconds_left = int(
+            #     (recent_job.requested_at + timedelta(
+            #         seconds=settings.SAME_THEME_COOLDOWN_SECONDS
+            #     ) - datetime.utcnow()).total_seconds()
+            # )
             return False, (
                 f"You recently generated a background with the same theme. "
-                f"Please wait {seconds_left}s or adjust the theme."
+                f"Please wait {int(remaining)}s or adjust the theme before trying again."
             )
         
         return True, None
@@ -76,7 +79,7 @@ class RateLimiter:
         if not settings.RATE_LIMIT_ENABLED:
             return True, None
         
-        window_start = datetime.utcnow() - timedelta(
+        window_start = datetime.now(timezone.utc) - timedelta(
             seconds=settings.LOGIN_RATE_LIMIT_WINDOW_SECONDS
         )
         

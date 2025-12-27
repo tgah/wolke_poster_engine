@@ -1,4 +1,4 @@
-"""Poster and template models."""
+"""Poster and template models with denormalized products."""
 from sqlalchemy import Column, String, Text, DateTime, ForeignKey, Enum, Integer, Numeric
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
@@ -10,7 +10,6 @@ from app.database import Base
 
 class PosterStatus(str, enum.Enum):
     DRAFT = "draft"
-    BACKGROUND_GENERATING = "background_generating"
     READY = "ready"
     FAILED = "failed"
 
@@ -36,10 +35,8 @@ class Poster(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     store_id = Column(UUID(as_uuid=True), ForeignKey("stores.id"), nullable=False)
     template_id = Column(UUID(as_uuid=True), ForeignKey("poster_templates.id"), nullable=False)
-    background_image_id = Column(UUID(as_uuid=True), ForeignKey("assets.id"), nullable=True)
+    background_image_id = Column(UUID(as_uuid=True), ForeignKey("assets.id"), nullable=False)
     
-    theme_text = Column(Text, nullable=True)
-    llm_prompt = Column(Text, nullable=True)
     sale_title = Column(String(500), nullable=False)
     
     status = Column(Enum(PosterStatus), nullable=False, default=PosterStatus.DRAFT)
@@ -57,17 +54,30 @@ class Poster(Base):
 
 
 class PosterProduct(Base):
+    """
+    Denormalized product data - no foreign key to products table.
+    All product information is embedded here.
+    """
     __tablename__ = "poster_products"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     poster_id = Column(UUID(as_uuid=True), ForeignKey("posters.id"), nullable=False)
-    product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"), nullable=False)
+    
+    # Legacy field - kept for compatibility but nullable
+    product_id = Column(UUID(as_uuid=True), nullable=True)
     
     display_order = Column(Integer, nullable=False)
     
-    # Allow overrides
-    display_name = Column(String(500), nullable=True)
-    display_weight = Column(String(100), nullable=True)
+    # Denormalized product data (from CSV/session)
+    artikel_nr = Column(String(100), nullable=False, index=True)
+    german_name = Column(String(500), nullable=False)
+    chinese_name = Column(String(500), nullable=True)
+    weight = Column(String(100), nullable=True)
+    
+    # Product image as base64
+    product_image_base64 = Column(Text, nullable=True)
+    
+    # Pricing
     sale_price = Column(Numeric(10, 2), nullable=False)
     old_price = Column(Numeric(10, 2), nullable=True)
     
@@ -76,4 +86,3 @@ class PosterProduct(Base):
     
     # Relationships
     poster = relationship("Poster", back_populates="products")
-    product = relationship("Product")
