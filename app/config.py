@@ -107,7 +107,7 @@ class Settings(BaseSettings):
     AUDIT_LOG_SENSITIVE_DATA: bool = False  # Don't log passwords, etc.
     
     # CORS (if needed)
-    CORS_ORIGINS: list[str] = ["http://localhost:3000"]
+    CORS_ORIGINS: list = ["http://localhost:3000", "http://localhost:8000"]
     CORS_CREDENTIALS: bool = True
     
     class Config:
