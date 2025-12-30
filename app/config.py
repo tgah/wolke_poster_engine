@@ -3,6 +3,7 @@ Configuration management using Pydantic Settings.
 Follows 12-factor app principles.
 """
 from pydantic_settings import BaseSettings
+from pydantic import validator, field_validator
 from typing import Optional, Literal
 from functools import lru_cache
 
@@ -107,8 +108,16 @@ class Settings(BaseSettings):
     AUDIT_LOG_SENSITIVE_DATA: bool = False  # Don't log passwords, etc.
     
     # CORS (if needed)
-    CORS_ORIGINS: list = ["http://localhost:3000", "http://localhost:8000"]
+    CORS_ORIGINS: list = ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:8000", "http://127.0.0.1:8000"]
     CORS_CREDENTIALS: bool = True
+
+    @field_validator("CORS_ORIGINS", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v):
+        if isinstance(v, str):
+            import json
+            return json.loads(v)
+        return v
     
     class Config:
         env_file = ".env"
