@@ -12,6 +12,7 @@ class PosterStatus(str, enum.Enum):
     DRAFT = "draft"
     READY = "ready"
     FAILED = "failed"
+    BACKGROUND_GENERATING = "background_generating"
 
 
 class PosterTemplate(Base):

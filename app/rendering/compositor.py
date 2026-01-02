@@ -144,48 +144,48 @@ class PosterCompositor:
             except Exception as e:
                 print(f"⚠️  Failed to load product image: {e}")
         
-        # Draw product name below image
-        name_y = layout["y"] + layout["height"] + 10
-        font = self._get_font(24, bold=False)
+        # Draw product name below image (scaled for A3)
+        name_y = layout["y"] + layout["height"] + 30
+        font = self._get_font(72, bold=False)
         draw.text(
             (layout["x"], name_y),
             poster_product.german_name,
             font=font,
             fill="#FFFFFF"
         )
-        
-        # Draw price
-        price_y = name_y + 30
-        price_font = self._get_font(32, bold=True)
+
+        # Draw price (scaled for A3)
+        price_y = name_y + 90
+        price_font = self._get_font(96, bold=True)
         price_text = f"€{float(poster_product.sale_price):.2f}"
-        
+
         draw.text(
             (layout["x"], price_y),
             price_text,
             font=price_font,
             fill="#FFD700"
         )
-        
-        # Draw old price if available
+
+        # Draw old price if available (scaled for A3)
         if poster_product.old_price:
             old_price_text = f"€{float(poster_product.old_price):.2f}"
-            old_price_font = self._get_font(20, bold=False)
-            
-            x_pos = layout["x"] + 150
+            old_price_font = self._get_font(60, bold=False)
+
+            x_pos = layout["x"] + 450
             draw.text(
-                (x_pos, price_y + 5),
+                (x_pos, price_y + 15),
                 old_price_text,
                 font=old_price_font,
                 fill="#AAAAAA"
             )
-            
+
             # Strikethrough line
             try:
                 bbox = draw.textbbox((x_pos, price_y), old_price_text, font=old_price_font)
                 draw.line(
-                    [(bbox[0], bbox[1] + 10), (bbox[2], bbox[1] + 10)],
+                    [(bbox[0], bbox[1] + 30), (bbox[2], bbox[1] + 30)],
                     fill="#AAAAAA",
-                    width=2
+                    width=6
                 )
             except:
                 pass
