@@ -64,8 +64,8 @@ class StableDiffusionGenerator(ImageGenerator):
         self,
         positive_prompt: str,
         negative_prompt: Optional[str] = None,
-        width: int = 1024,
-        height: int = 1024,
+        width: int = 3508,  # A3 portrait width at 300 DPI
+        height: int = 4961,  # A3 portrait height at 300 DPI
         **kwargs
     ) -> bytes:
         """Generate image using Stable Diffusion."""

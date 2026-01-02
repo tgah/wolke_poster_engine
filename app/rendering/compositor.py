@@ -59,12 +59,15 @@ class PosterCompositor:
         
         # Get template layout
         layout = poster.template.layout_json
-        
+        print(f"🎨 Template layout has {len(layout.get('products', []))} product slots")
+        print(f"📦 Poster has {len(poster.products)} products to render")
+
         # Draw title
         self._draw_title(draw, poster.sale_title, layout["title"])
-        
+
         # Draw products
         for idx, poster_product in enumerate(sorted(poster.products, key=lambda p: p.display_order)):
+            print(f"  📍 Rendering product {idx + 1}: {poster_product.german_name}")
             if idx < len(layout["products"]):
                 product_layout = layout["products"][idx]
                 self._draw_product(
@@ -87,10 +90,29 @@ class PosterCompositor:
     def _load_image_from_asset(self, asset: Asset) -> Image.Image:
         """Load image from asset storage."""
         from pathlib import Path
-        
+
         if asset.storage_backend.value == "local":
             path = Path(settings.STORAGE_BASE_PATH) / asset.path
-            return Image.open(path).convert("RGBA")
+            img = Image.open(path)
+
+            # Convert to RGB mode for proper rendering (remove alpha channel)
+            if img.mode in ('RGBA', 'LA', 'P'):
+                # Create white background
+                background = Image.new('RGB', img.size, (255, 255, 255))
+                if img.mode == 'P':
+                    img = img.convert('RGBA')
+                background.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
+                img = background
+            else:
+                img = img.convert("RGB")
+
+            # Auto-upscale old backgrounds to A3 if needed (backward compatibility)
+            if img.width < 3508 or img.height < 4961:
+                original_size = f"{img.width}x{img.height}"
+                img = img.resize((3508, 4961), Image.Resampling.LANCZOS)
+                print(f"⚠️  Upscaled background from {original_size} to 3508x4961 for A3 compatibility")
+
+            return img
         else:
             raise NotImplementedError("S3 loading not implemented")
     
@@ -99,7 +121,10 @@ class PosterCompositor:
         try:
             img_bytes = base64.b64decode(base64_str)
             img = Image.open(io.BytesIO(img_bytes))
-            return img.convert("RGBA")
+            # Convert to RGB for consistency (product images are JPEGs, should be RGB)
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+            return img
         except Exception as e:
             print(f"⚠️  Failed to decode base64 image: {e}")
             return None
@@ -124,29 +149,49 @@ class PosterCompositor:
         layout: Dict
     ):
         """Draw product with base64 image, name, and price."""
-        
+        print(f"    Drawing product: {poster_product.german_name} at ({layout['x']}, {layout['y']})")
+
         # Load product image from base64
         if poster_product.product_image_base64:
             try:
                 product_img = self._load_image_from_base64(
                     poster_product.product_image_base64
                 )
-                
+
                 if product_img:
                     # Resize to fit layout
                     product_img = product_img.resize(
                         (layout["width"], layout["height"]),
                         Image.Resampling.LANCZOS
                     )
-                    # Paste onto poster
-                    img.paste(product_img, (layout["x"], layout["y"]), product_img)
-            
+                    # Paste onto poster (no mask needed for RGB images)
+                    img.paste(product_img, (layout["x"], layout["y"]))
+                    print(f"    ✅ Product image pasted at ({layout['x']}, {layout['y']}) with size {layout['width']}x{layout['height']}")
+                else:
+                    print(f"⚠️  Product image is None for: {poster_product.artikel_nr}")
+
             except Exception as e:
-                print(f"⚠️  Failed to load product image: {e}")
+                print(f"⚠️  Failed to load product image for {poster_product.artikel_nr}: {e}")
+        else:
+            print(f"⚠️  No base64 image data for product: {poster_product.artikel_nr}")
         
-        # Draw product name below image (scaled for A3)
+        # Draw product name below image (scaled for A3) with stroke for visibility
         name_y = layout["y"] + layout["height"] + 30
         font = self._get_font(72, bold=False)
+
+        # Draw stroke (black outline) for text visibility on any background
+        stroke_width = 3
+        for offset_x in range(-stroke_width, stroke_width + 1):
+            for offset_y in range(-stroke_width, stroke_width + 1):
+                if offset_x != 0 or offset_y != 0:
+                    draw.text(
+                        (layout["x"] + offset_x, name_y + offset_y),
+                        poster_product.german_name,
+                        font=font,
+                        fill="#000000"
+                    )
+
+        # Draw main text (white)
         draw.text(
             (layout["x"], name_y),
             poster_product.german_name,
@@ -154,11 +199,23 @@ class PosterCompositor:
             fill="#FFFFFF"
         )
 
-        # Draw price (scaled for A3)
+        # Draw price (scaled for A3) with stroke for visibility
         price_y = name_y + 90
         price_font = self._get_font(96, bold=True)
         price_text = f"€{float(poster_product.sale_price):.2f}"
 
+        # Draw stroke (black outline) for price
+        for offset_x in range(-stroke_width, stroke_width + 1):
+            for offset_y in range(-stroke_width, stroke_width + 1):
+                if offset_x != 0 or offset_y != 0:
+                    draw.text(
+                        (layout["x"] + offset_x, price_y + offset_y),
+                        price_text,
+                        font=price_font,
+                        fill="#000000"
+                    )
+
+        # Draw main price (gold)
         draw.text(
             (layout["x"], price_y),
             price_text,
@@ -166,12 +223,25 @@ class PosterCompositor:
             fill="#FFD700"
         )
 
-        # Draw old price if available (scaled for A3)
+        # Draw old price if available (scaled for A3) with stroke
         if poster_product.old_price:
             old_price_text = f"€{float(poster_product.old_price):.2f}"
             old_price_font = self._get_font(60, bold=False)
 
             x_pos = layout["x"] + 450
+
+            # Draw stroke for old price
+            for offset_x in range(-stroke_width, stroke_width + 1):
+                for offset_y in range(-stroke_width, stroke_width + 1):
+                    if offset_x != 0 or offset_y != 0:
+                        draw.text(
+                            (x_pos + offset_x, price_y + 15 + offset_y),
+                            old_price_text,
+                            font=old_price_font,
+                            fill="#000000"
+                        )
+
+            # Draw main old price (gray)
             draw.text(
                 (x_pos, price_y + 15),
                 old_price_text,
@@ -184,7 +254,7 @@ class PosterCompositor:
                 bbox = draw.textbbox((x_pos, price_y), old_price_text, font=old_price_font)
                 draw.line(
                     [(bbox[0], bbox[1] + 30), (bbox[2], bbox[1] + 30)],
-                    fill="#AAAAAA",
+                    fill="#FF0000",  # Red strikethrough for better visibility
                     width=6
                 )
             except:

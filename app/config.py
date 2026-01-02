@@ -57,8 +57,8 @@ class Settings(BaseSettings):
     
     # Asset limits
     MAX_UPLOAD_SIZE_MB: int = 10
-    MIN_BACKGROUND_WIDTH: int = 1024
-    MIN_BACKGROUND_HEIGHT: int = 1024
+    MIN_BACKGROUND_WIDTH: int = 3508  # A3 portrait width at 300 DPI
+    MIN_BACKGROUND_HEIGHT: int = 4961  # A3 portrait height at 300 DPI
     ALLOWED_IMAGE_TYPES: list[str] = ["image/png", "image/jpeg"]
     
     # AI - LLM Provider
@@ -76,13 +76,13 @@ class Settings(BaseSettings):
     SD_DEVICE: str = "mps"  # or "cpu"
     SD_NUM_INFERENCE_STEPS: int = 50
     SD_GUIDANCE_SCALE: float = 7.5
-    SD_IMAGE_WIDTH: int = 1024
-    SD_IMAGE_HEIGHT: int = 1024
+    SD_IMAGE_WIDTH: int = 3508  # A3 portrait width at 300 DPI
+    SD_IMAGE_HEIGHT: int = 4961  # A3 portrait height at 300 DPI
     
     # DALL-E (if used)
     DALLE_API_KEY: Optional[str] = None
     DALLE_MODEL: str = "dall-e-3"
-    DALLE_SIZE: str = "1024x1024"
+    DALLE_SIZE: str = "1024x1792"  # Portrait, will be upscaled to A3
     DALLE_QUALITY: str = "standard"
     
     # Background Jobs
