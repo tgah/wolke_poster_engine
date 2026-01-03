@@ -3,6 +3,7 @@ import httpx
 from typing import Optional
 import base64
 import io
+import random
 from PIL import Image
 
 from app.ai.image_generator import ImageGenerator, ImageGenerationError
@@ -28,8 +29,19 @@ class DallEGenerator(ImageGenerator):
         height: int = 4961,  # A3 portrait height at 300 DPI
         **kwargs
     ) -> bytes:
-        """Generate image using DALL-E and upscale to requested dimensions."""
+        """Generate image using DALL-E with random system prompt and upscale to requested dimensions."""
         url = "https://api.openai.com/v1/images/generations"
+
+        # Randomly select one of the system prompts
+        system_prompt = random.choice(settings.DALLE_SYSTEM_PROMPTS)
+
+        # Prepend system prompt to user's theme description
+        full_prompt = f"{system_prompt}\n\nTheme/Keywords: {positive_prompt}"
+
+        # Log which system prompt was selected (for debugging)
+        prompt_index = settings.DALLE_SYSTEM_PROMPTS.index(system_prompt) + 1
+        print(f"🎨 Selected DALL-E System Prompt #{prompt_index}")
+        print(f"📝 User theme: {positive_prompt}")
 
         # DALL-E 3 only supports specific sizes, use closest preset
         if width > height:
@@ -42,7 +54,7 @@ class DallEGenerator(ImageGenerator):
         # Request base64 response instead of URL to avoid Azure blob auth issues
         payload = {
             "model": self.model,
-            "prompt": positive_prompt,
+            "prompt": full_prompt,  # Use combined prompt
             "size": dalle_size,
             "quality": self.quality,
             "n": 1,

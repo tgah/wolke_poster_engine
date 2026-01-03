@@ -18,28 +18,63 @@ class PosterCompositor:
     def __init__(self):
         self.default_font_path = settings.EXPORT_FONT_PATH
         self.bold_font_path = settings.EXPORT_FONT_BOLD_PATH
-        
-        # Font fallback paths for Mac
+
+        # Font fallback paths for Mac (including CJK support)
         self.font_fallbacks = [
             (self.default_font_path, self.bold_font_path),
-            ("/System/Library/Fonts/Supplemental/Arial.ttf", 
+            # macOS fonts with Chinese character support
+            ("/System/Library/Fonts/Hiragino Sans GB.ttc",
+             "/System/Library/Fonts/Hiragino Sans GB.ttc"),
+            ("/System/Library/Fonts/STHeiti Light.ttc",
+             "/System/Library/Fonts/STHeiti Medium.ttc"),
+            ("/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
+             "/System/Library/Fonts/Supplemental/Arial Unicode.ttf"),
+            # Standard fallbacks
+            ("/System/Library/Fonts/Supplemental/Arial.ttf",
              "/System/Library/Fonts/Supplemental/Arial Bold.ttf"),
-            ("/System/Library/Fonts/Helvetica.ttc", 
+            ("/System/Library/Fonts/Helvetica.ttc",
              "/System/Library/Fonts/Helvetica.ttc"),
             ("./fonts/Arial.ttf", "./fonts/Arial-Bold.ttf"),
         ]
     
-    def _get_font(self, size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
-        """Get font with fallback support."""
+    def _get_font(self, size: int, bold: bool = False, require_cjk: bool = False) -> ImageFont.FreeTypeFont:
+        """Get font with fallback support.
+
+        Args:
+            size: Font size in pixels
+            bold: Use bold variant if available
+            require_cjk: If True, prefer fonts with CJK (Chinese/Japanese/Korean) support
+        """
+        # If CJK support is required, prioritize CJK-compatible fonts
+        if require_cjk:
+            cjk_fonts = [
+                # macOS system fonts with Chinese character support
+                ("/System/Library/Fonts/Hiragino Sans GB.ttc",
+                 "/System/Library/Fonts/Hiragino Sans GB.ttc"),
+                ("/System/Library/Fonts/STHeiti Light.ttc",
+                 "/System/Library/Fonts/STHeiti Medium.ttc"),
+                ("/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
+                 "/System/Library/Fonts/Supplemental/Arial Unicode.ttf"),
+            ]
+
+            for regular_path, bold_path in cjk_fonts:
+                font_path = bold_path if bold else regular_path
+                if os.path.exists(font_path):
+                    try:
+                        return ImageFont.truetype(font_path, size)
+                    except Exception:
+                        continue
+
+        # Try all fallback fonts
         for regular_path, bold_path in self.font_fallbacks:
             font_path = bold_path if bold else regular_path
-            
+
             if os.path.exists(font_path):
                 try:
                     return ImageFont.truetype(font_path, size)
                 except Exception:
                     continue
-        
+
         print(f"⚠️  Warning: Using default font")
         return ImageFont.load_default()
     
@@ -133,14 +168,49 @@ class PosterCompositor:
         """Draw sale title."""
         font = self._get_font(layout["font_size"], bold=True)
         color = layout.get("color", "#FFFFFF")
-        
+
         draw.text(
             (layout["x"], layout["y"]),
             title,
             font=font,
             fill=color
         )
-    
+
+    def _draw_text_with_stroke(
+        self,
+        draw: ImageDraw,
+        x: int,
+        y: int,
+        text: str,
+        font_size: int,
+        color: str,
+        bold: bool = False,
+        stroke_width: int = 3,
+        stroke_color: str = "#000000",
+        require_cjk: bool = False
+    ):
+        """Draw text with stroke outline for visibility."""
+        font = self._get_font(font_size, bold=bold, require_cjk=require_cjk)
+
+        # Draw stroke (outline)
+        for offset_x in range(-stroke_width, stroke_width + 1):
+            for offset_y in range(-stroke_width, stroke_width + 1):
+                if offset_x != 0 or offset_y != 0:
+                    draw.text(
+                        (x + offset_x, y + offset_y),
+                        text,
+                        font=font,
+                        fill=stroke_color
+                    )
+
+        # Draw main text
+        draw.text(
+            (x, y),
+            text,
+            font=font,
+            fill=color
+        )
+
     def _draw_product(
         self,
         img: Image.Image,
@@ -174,83 +244,97 @@ class PosterCompositor:
                 print(f"⚠️  Failed to load product image for {poster_product.artikel_nr}: {e}")
         else:
             print(f"⚠️  No base64 image data for product: {poster_product.artikel_nr}")
-        
-        # Draw product name below image (scaled for A3) with stroke for visibility
-        name_y = layout["y"] + layout["height"] + 30
-        font = self._get_font(72, bold=False)
 
-        # Draw stroke (black outline) for text visibility on any background
-        stroke_width = 3
-        for offset_x in range(-stroke_width, stroke_width + 1):
-            for offset_y in range(-stroke_width, stroke_width + 1):
-                if offset_x != 0 or offset_y != 0:
-                    draw.text(
-                        (layout["x"] + offset_x, name_y + offset_y),
-                        poster_product.german_name,
-                        font=font,
-                        fill="#000000"
-                    )
+        # Start text rendering 30px below product image
+        text_start_y = layout["y"] + layout["height"] + 30
 
-        # Draw main text (white)
-        draw.text(
-            (layout["x"], name_y),
+        # Draw artikel_nr (first line - always present)
+        artikel_y = text_start_y
+        self._draw_text_with_stroke(
+            draw,
+            layout["x"],
+            artikel_y,
+            poster_product.artikel_nr,
+            font_size=60,
+            color="#CCCCCC"  # Light gray for metadata
+        )
+        print(f"    ✏️  Drew artikel_nr: {poster_product.artikel_nr}")
+
+        # Draw chinese_name (second line - if present)
+        chinese_y = artikel_y + 75  # 60px font + 15px gap
+        if poster_product.chinese_name:
+            self._draw_text_with_stroke(
+                draw,
+                layout["x"],
+                chinese_y,
+                poster_product.chinese_name,
+                font_size=60,
+                color="#CCCCCC",
+                require_cjk=True  # Use CJK-compatible font
+            )
+            print(f"    ✏️  Drew chinese_name: {poster_product.chinese_name}")
+        else:
+            print(f"    ⚠️  No chinese_name for product")
+
+        # Draw weight (third line - if present)
+        weight_y = chinese_y + 75
+        if poster_product.weight:
+            self._draw_text_with_stroke(
+                draw,
+                layout["x"],
+                weight_y,
+                str(poster_product.weight),
+                font_size=60,
+                color="#CCCCCC"
+            )
+            print(f"    ✏️  Drew weight: {poster_product.weight}")
+        else:
+            print(f"    ⚠️  No weight for product")
+
+        # Draw german_name (fourth line - larger gap for visual separation)
+        name_y = weight_y + 90
+        self._draw_text_with_stroke(
+            draw,
+            layout["x"],
+            name_y,
             poster_product.german_name,
-            font=font,
-            fill="#FFFFFF"
+            font_size=72,
+            color="#FFFFFF"
         )
+        print(f"    ✏️  Drew german_name: {poster_product.german_name}")
 
-        # Draw price (scaled for A3) with stroke for visibility
+        # Draw sale price (scaled for A3)
         price_y = name_y + 90
-        price_font = self._get_font(96, bold=True)
         price_text = f"€{float(poster_product.sale_price):.2f}"
-
-        # Draw stroke (black outline) for price
-        for offset_x in range(-stroke_width, stroke_width + 1):
-            for offset_y in range(-stroke_width, stroke_width + 1):
-                if offset_x != 0 or offset_y != 0:
-                    draw.text(
-                        (layout["x"] + offset_x, price_y + offset_y),
-                        price_text,
-                        font=price_font,
-                        fill="#000000"
-                    )
-
-        # Draw main price (gold)
-        draw.text(
-            (layout["x"], price_y),
+        self._draw_text_with_stroke(
+            draw,
+            layout["x"],
+            price_y,
             price_text,
-            font=price_font,
-            fill="#FFD700"
+            font_size=96,
+            color="#FFD700",  # Gold
+            bold=True
         )
+        print(f"    ✏️  Drew sale_price: {price_text}")
 
-        # Draw old price if available (scaled for A3) with stroke
+        # Draw old price if available (scaled for A3)
         if poster_product.old_price:
             old_price_text = f"€{float(poster_product.old_price):.2f}"
-            old_price_font = self._get_font(60, bold=False)
-
             x_pos = layout["x"] + 450
 
-            # Draw stroke for old price
-            for offset_x in range(-stroke_width, stroke_width + 1):
-                for offset_y in range(-stroke_width, stroke_width + 1):
-                    if offset_x != 0 or offset_y != 0:
-                        draw.text(
-                            (x_pos + offset_x, price_y + 15 + offset_y),
-                            old_price_text,
-                            font=old_price_font,
-                            fill="#000000"
-                        )
-
-            # Draw main old price (gray)
-            draw.text(
-                (x_pos, price_y + 15),
+            self._draw_text_with_stroke(
+                draw,
+                x_pos,
+                price_y + 15,
                 old_price_text,
-                font=old_price_font,
-                fill="#AAAAAA"
+                font_size=60,
+                color="#AAAAAA"  # Gray
             )
+            print(f"    ✏️  Drew old_price: {old_price_text}")
 
             # Strikethrough line
             try:
+                old_price_font = self._get_font(60, bold=False)
                 bbox = draw.textbbox((x_pos, price_y), old_price_text, font=old_price_font)
                 draw.line(
                     [(bbox[0], bbox[1] + 30), (bbox[2], bbox[1] + 30)],
