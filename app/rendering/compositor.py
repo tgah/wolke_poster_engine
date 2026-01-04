@@ -15,6 +15,9 @@ settings = get_settings()
 class PosterCompositor:
     """Compose final poster with background and overlays."""
     
+    A3_WIDTH_PX = 3508
+    A3_HEIGHT_PX = 4961
+
     def __init__(self):
         self.default_font_path = settings.EXPORT_FONT_PATH
         self.bold_font_path = settings.EXPORT_FONT_BOLD_PATH
@@ -51,11 +54,20 @@ class PosterCompositor:
     ) -> bytes:
         """Render poster to image bytes with base64 product images."""
         
-        # Load background
+        # Load background image
         bg_img = self._load_image_from_asset(background_image)
-        
+
+        # Create explicit A3 canvas
+        canvas = Image.new("RGBA",(A3_WIDTH_PX, A3_HEIGHT_PX),(0, 0, 0, 255))
+
+        # Resize background to exactly fill A3 canvas
+        bg_img = bg_img.resize((A3_WIDTH_PX, A3_HEIGHT_PX),Image.Resampling.LANCZOS)
+
+        # Paste background onto canvas
+        canvas.paste(bg_img, (0, 0))
+
         # Create drawing context
-        draw = ImageDraw.Draw(bg_img)
+        draw = ImageDraw.Draw(canvas)
         
         # Get template layout
         layout = poster.template.layout_json
@@ -68,7 +80,7 @@ class PosterCompositor:
             if idx < len(layout["products"]):
                 product_layout = layout["products"][idx]
                 self._draw_product(
-                    bg_img,
+                    canvas,
                     draw,
                     poster_product,
                     product_layout
@@ -76,11 +88,11 @@ class PosterCompositor:
         
         # Draw logo if available
         if poster.store.settings and poster.store.settings.logo:
-            self._draw_logo(bg_img, poster.store.settings.logo, layout["logo"])
+            self._draw_logo(canvas, poster.store.settings.logo, layout["logo"])
         
         # Convert to bytes
         output = io.BytesIO()
-        bg_img.save(output, format=format, quality=95)
+        canvas.save(output, format=format, quality=95)
         output.seek(0)
         return output.getvalue()
     
