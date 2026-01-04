@@ -61,50 +61,50 @@ def seed_database():
         
         print(f"Created user: {user.email} (password: admin123)")
         
-        # Create poster templates
+        # Create poster templates (A3 Portrait: 3508 × 4961 pixels at 300 DPI)
         two_product_template = PosterTemplate(
             id=uuid.uuid4(),
             key="two_product",
             name="Two Product Layout",
-            description="Standard layout for 2 products",
+            description="A3 portrait layout for 2 products",
             max_products=2,
             layout_json={
-                "background": {"x": 0, "y": 0, "width": 1024, "height": 1024},
+                "background": {"x": 0, "y": 0, "width": 3508, "height": 4961},
                 "title": {
-                    "x": 50, "y": 50, 
-                    "font_size": 48, 
-                    "color": "#FFFFFF", 
-                    "max_width": 924
+                    "x": 150, "y": 150,
+                    "font_size": 140,
+                    "color": "#FFFFFF",
+                    "max_width": 3208
                 },
                 "products": [
-                    {"x": 100, "y": 300, "width": 400, "height": 400},
-                    {"x": 524, "y": 300, "width": 400, "height": 400}
+                    {"x": 304, "y": 1200, "width": 1400, "height": 1400},
+                    {"x": 1804, "y": 1200, "width": 1400, "height": 1400}
                 ],
-                "logo": {"x": 850, "y": 900, "max_width": 150, "max_height": 100}
+                "logo": {"x": 3008, "y": 4511, "max_width": 400, "max_height": 300}
             }
         )
         db.add(two_product_template)
-        
+
         three_product_template = PosterTemplate(
             id=uuid.uuid4(),
             key="three_product",
             name="Three Product Layout",
-            description="Standard layout for 3 products",
+            description="A3 portrait layout for 3 products",
             max_products=3,
             layout_json={
-                "background": {"x": 0, "y": 0, "width": 1024, "height": 1024},
+                "background": {"x": 0, "y": 0, "width": 3508, "height": 4961},
                 "title": {
-                    "x": 50, "y": 50,
-                    "font_size": 48,
+                    "x": 150, "y": 150,
+                    "font_size": 140,
                     "color": "#FFFFFF",
-                    "max_width": 924
+                    "max_width": 3208
                 },
                 "products": [
-                    {"x": 50, "y": 200, "width": 300, "height": 300},
-                    {"x": 362, "y": 200, "width": 300, "height": 300},
-                    {"x": 674, "y": 200, "width": 300, "height": 300}
+                    {"x": 154, "y": 800, "width": 1050, "height": 1050},
+                    {"x": 1229, "y": 800, "width": 1050, "height": 1050},
+                    {"x": 2304, "y": 800, "width": 1050, "height": 1050}
                 ],
-                "logo": {"x": 850, "y": 900, "max_width": 150, "max_height": 100}
+                "logo": {"x": 3008, "y": 4511, "max_width": 400, "max_height": 300}
             }
         )
         db.add(three_product_template)

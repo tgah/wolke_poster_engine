@@ -1,6 +1,6 @@
 """Poster API endpoints with session products and image uploads."""
 from fastapi import APIRouter, Depends, HTTPException, Form, UploadFile, File, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 from uuid import UUID
 from decimal import Decimal
@@ -117,47 +117,62 @@ async def create_poster(
     
     print(f"📋 Created poster {poster.id}")
     
+    # Initialize asset service
+    asset_service = AssetService(db)
+
     # Process each product
     for idx, (artikel_nr, sale_price, img_file) in enumerate(zip(
         artikel_nrs, sale_prices, product_images
     ), start=1):
-        
+
         # Find product in session
         product_data = session_mgr.get_product_by_artikel_nr(session_id, artikel_nr)
-        
+
         if not product_data:
             db.rollback()
             raise HTTPException(
                 400,
                 f"Product {artikel_nr} not found in session"
             )
-        
+
         # Read and process image
         try:
             img_content = await img_file.read()
             img = Image.open(io.BytesIO(img_content))
-            
+
             # Resize to max 800x800
             img.thumbnail((800, 800), Image.Resampling.LANCZOS)
-            
+
             # Convert to RGB if needed
             if img.mode != 'RGB':
                 img = img.convert('RGB')
-            
+
             # Save as JPEG with compression
             buffer = io.BytesIO()
             img.save(buffer, format='JPEG', quality=85, optimize=True)
             buffer.seek(0)
-            
-            # Convert to base64
-            img_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-            
-            print(f"  📷 Processed image for product {idx}: {len(img_base64)} chars")
-        
+
+            # Get image bytes
+            img_bytes = buffer.getvalue()
+
+            # Save image to storage directory using AssetService
+            product_image_asset = asset_service.save_asset(
+                img_bytes,
+                AssetType.PRODUCT_IMAGE,
+                current_user.company_id,
+                user_id=current_user.id,
+                mime_type="image/jpeg"
+            )
+
+            # Convert to base64 for backward compatibility (stored in DB)
+            img_base64 = base64.b64encode(img_bytes).decode('utf-8')
+
+            print(f"  📷 Saved product image {idx}: {product_image_asset.path}")
+
         except Exception as e:
             db.rollback()
             raise HTTPException(400, f"Failed to process image {idx}: {str(e)}")
-        
+
         # Create poster product with denormalized data
         poster_product = PosterProduct(
             poster_id=poster.id,
@@ -282,11 +297,17 @@ async def export_poster(
     First export is rendered and cached.
     Subsequent exports return cached version.
     """
-    poster = db.query(Poster).filter(
+    # Eager load all relationships to avoid lazy-loading issues during rendering
+    poster = db.query(Poster).options(
+        joinedload(Poster.products),
+        joinedload(Poster.template),
+        joinedload(Poster.background_image),
+        joinedload(Poster.store)
+    ).filter(
         Poster.id == poster_id,
         Poster.created_by_user_id == current_user.id
     ).first()
-    
+
     if not poster:
         raise HTTPException(404, "Poster not found or access denied")
     
