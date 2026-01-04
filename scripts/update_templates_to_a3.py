@@ -32,9 +32,10 @@ def update_templates():
                     "max_width": 3208
                 },
                 "products": [
-                    {"x": 304, "y": 1200, "width": 1400, "height": 1400},
-                    {"x": 1804, "y": 1200, "width": 1400, "height": 1400}
-                ],
+                    {"x": 444, "y": 1500, "width": 1120, "height": 1120},
+                    {"x": 1944, "y": 1500, "width": 1120, "height": 1120}
+                ]
+
                 "logo": {"x": 3008, "y": 4511, "max_width": 400, "max_height": 300}
             }
             print(f"✅ Updated template: {two_product.name}")
