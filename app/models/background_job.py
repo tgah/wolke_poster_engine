@@ -25,7 +25,7 @@ class BackgroundJob(Base):
     __tablename__ = "background_jobs"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    poster_id = Column(UUID(as_uuid=True), ForeignKey("posters.id"), nullable=False) # needs to be modified to nullable=True
+    poster_id = Column(UUID(as_uuid=True), ForeignKey("posters.id"), nullable=True) # needs to be modified to nullable=True
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     
     input_theme_text = Column(Text, nullable=False)
