@@ -93,10 +93,10 @@ class PosterCompositor:
         bg_img = self._load_image_from_asset(background_image)
 
         # Create explicit A3 canvas
-        canvas = Image.new("RGBA",(A3_WIDTH_PX, A3_HEIGHT_PX),(0, 0, 0, 255))
+        canvas = Image.new("RGBA",(self.A3_WIDTH_PX, self.A3_HEIGHT_PX),(0, 0, 0, 255))
 
         # Resize background to exactly fill A3 canvas
-        bg_img = bg_img.resize((A3_WIDTH_PX, A3_HEIGHT_PX),Image.Resampling.LANCZOS)
+        bg_img = bg_img.resize((self.A3_WIDTH_PX, self.A3_HEIGHT_PX),Image.Resampling.LANCZOS)
 
         # Paste background onto canvas
         canvas.paste(bg_img, (0, 0))

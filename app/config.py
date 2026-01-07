@@ -236,7 +236,7 @@ class Settings(BaseSettings):
     AUDIT_LOG_SENSITIVE_DATA: bool = False  # Don't log passwords, etc.
     
     # CORS (if needed)
-    CORS_ORIGINS: list = ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:8000", "http://127.0.0.1:8000"]
+    CORS_ORIGINS: list = ["https://wolke-poster.vercel.app", "http://localhost:3000"]
     CORS_CREDENTIALS: bool = True
 
     @field_validator("CORS_ORIGINS", mode="before")
