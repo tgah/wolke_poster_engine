@@ -181,8 +181,17 @@ class PosterCompositor:
         font = self._get_font(layout["font_size"], bold=True)
         color = layout.get("color", "#FFFFFF")
 
+        # Measure text width
+        bbox = draw.textbbox((0, 0), title, font=font)
+        text_width = bbox[2] - bbox[0]
+
+        # Center horizontally within max_width if provided
+        x = layout["x"]
+        if "max_width" in layout:
+            x = layout["x"] + (layout["max_width"] - text_width) // 2
+
         draw.text(
-            (layout["x"], layout["y"]),
+            (x, layout["y"]),
             title,
             font=font,
             fill=color

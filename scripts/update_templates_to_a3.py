@@ -35,8 +35,10 @@ def update_templates():
                     "max_width": 3208
                 },
                 "products": [
-                    {"x": 444, "y": 1500, "width": 1120, "height": 1120},
-                    {"x": 1944, "y": 1500, "width": 1120, "height": 1120}
+                    "products": [
+                        {"x": 444, "y": 2600, "width": 1120, "height": 1120},
+                        {"x": 1944, "y": 2600, "width": 1120, "height": 1120}
+                    ]
                 ],
                 "logo": {"x": 3008, "y": 4511, "max_width": 400, "max_height": 300}
             }
