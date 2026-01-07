@@ -339,6 +339,13 @@ async def export_poster(
         poster.background_image,
         format=data.format.upper()
     )
+    print("\n========== EXPORT DEBUG ==========")
+    print(f"Exporting poster: {poster.id}")
+    print(f"Poster status: {poster.status}")
+    print(f"Template key: {poster.template.key}")
+    print(f"Template ID: {poster.template.id}")
+    print("=================================\n")
+
     
     # Save as asset
     asset = asset_service.save_asset(

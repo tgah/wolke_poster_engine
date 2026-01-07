@@ -106,6 +106,33 @@ class PosterCompositor:
         
         # Get template layout
         layout = poster.template.layout_json
+        print("\n========== COMPOSITOR DEBUG ==========")
+        print(f"Poster ID: {poster.id}")
+        print(f"Template key: {poster.template.key}")
+        print(f"Template ID: {poster.template.id}")
+
+        # Background info
+        try:
+            print(f"Background asset path: {background_image.path}")
+        except Exception:
+            pass
+
+        # Layout sanity
+        print("Title layout:", layout.get("title"))
+        print("Products layout:", layout.get("products"))
+        print("Logo layout:", layout.get("logo"))
+
+        # Canvas vs background sizes (critical)
+        print("Background image size:", bg_img.size)
+
+        # If you created a canvas (Path B), also print:
+        try:
+            print("Canvas size:", canvas.size)
+        except Exception:
+            pass
+
+        print("=====================================\n")
+
         print(f"🎨 Template layout has {len(layout.get('products', []))} product slots")
         print(f"📦 Poster has {len(poster.products)} products to render")
 

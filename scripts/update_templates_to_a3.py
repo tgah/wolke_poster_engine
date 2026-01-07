@@ -42,6 +42,9 @@ def update_templates():
                 ],
                 "logo": {"x": 3008, "y": 4511, "max_width": 400, "max_height": 300}
             }
+            print("DEBUG: Updated two_product products:", two_product.layout_json["products"])
+            print("DEBUG: Updated two_product title:", two_product.layout_json["title"])
+
             print(f"✅ Updated template: {two_product.name} (products in lower 40%)")
         else:
             print("⚠️  Two product template not found")
@@ -77,6 +80,9 @@ def update_templates():
             print("⚠️  Three product template not found")
 
         db.commit()
+        db.refresh(two_product)
+        print("DEBUG AFTER COMMIT products:", two_product.layout_json["products"])
+
         print("\n✅ Templates updated successfully to A3 portrait dimensions!")
         print("   Canvas: 3508 × 4961 pixels (297mm × 420mm at 300 DPI)")
         print("   Products positioned in lower 40% of canvas")
