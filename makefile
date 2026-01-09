@@ -1,5 +1,8 @@
 SHELL := /bin/bash
 
+run-venv:
+source venv/bin/activate   
+
 run-redis:
 	@/opt/homebrew/bin/redis-server
 

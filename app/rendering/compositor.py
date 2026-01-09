@@ -177,16 +177,20 @@ class PosterCompositor:
             return None
     
     def _draw_title(self, draw: ImageDraw, title: str, layout: Dict):
-        """Draw sale title."""
         font = self._get_font(layout["font_size"], bold=True)
         color = layout.get("color", "#FFFFFF")
 
-        draw.text(
-            (layout["x"], layout["y"]),
-            title,
-            font=font,
-            fill=color
-        )
+        x = layout["x"]
+        y = layout["y"]
+
+        # Center title horizontally if max_width is provided
+        if "max_width" in layout:
+            bbox = draw.textbbox((0, 0), title, font=font)
+            text_width = bbox[2] - bbox[0]
+            x = layout["x"] + (layout["max_width"] - text_width) // 2
+
+        draw.text((x, y), title, font=font, fill=color)
+
 
     def _draw_text_with_stroke(
         self,
@@ -241,13 +245,18 @@ class PosterCompositor:
                 )
 
                 if product_img:
-                    # Resize to fit layout
-                    product_img = product_img.resize(
+                    # Preserve aspect ratio, fit inside box
+                    product_img.thumbnail(
                         (layout["width"], layout["height"]),
                         Image.Resampling.LANCZOS
                     )
-                    # Paste onto poster (no mask needed for RGB images)
-                    img.paste(product_img, (layout["x"], layout["y"]))
+
+                    # Center image inside the allocated box (letterboxing)
+                    offset_x = layout["x"] + (layout["width"] - product_img.width) // 2
+                    offset_y = layout["y"] + (layout["height"] - product_img.height) // 2
+
+                    img.paste(product_img, (offset_x, offset_y), product_img)
+
                     print(f"    ✅ Product image pasted at ({layout['x']}, {layout['y']}) with size {layout['width']}x{layout['height']}")
                 else:
                     print(f"⚠️  Product image is None for: {poster_product.artikel_nr}")
