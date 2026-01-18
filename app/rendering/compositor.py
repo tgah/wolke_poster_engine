@@ -22,21 +22,27 @@ class PosterCompositor:
         self.default_font_path = settings.EXPORT_FONT_PATH
         self.bold_font_path = settings.EXPORT_FONT_BOLD_PATH
 
-        # Font fallback paths for Mac (including CJK support)
         self.font_fallbacks = [
+            # ✅ Linux / Hetzner (CJK-safe)
+            ("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+            "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"),
+
+            # Configured fonts
             (self.default_font_path, self.bold_font_path),
-            # macOS fonts with Chinese character support
+
+            # macOS (local dev)
             ("/System/Library/Fonts/Hiragino Sans GB.ttc",
-             "/System/Library/Fonts/Hiragino Sans GB.ttc"),
+            "/System/Library/Fonts/Hiragino Sans GB.ttc"),
             ("/System/Library/Fonts/STHeiti Light.ttc",
-             "/System/Library/Fonts/STHeiti Medium.ttc"),
+            "/System/Library/Fonts/STHeiti Medium.ttc"),
             ("/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
-             "/System/Library/Fonts/Supplemental/Arial Unicode.ttf"),
+            "/System/Library/Fonts/Supplemental/Arial Unicode.ttf"),
+
             # Standard fallbacks
             ("/System/Library/Fonts/Supplemental/Arial.ttf",
-             "/System/Library/Fonts/Supplemental/Arial Bold.ttf"),
+            "/System/Library/Fonts/Supplemental/Arial Bold.ttf"),
             ("/System/Library/Fonts/Helvetica.ttc",
-             "/System/Library/Fonts/Helvetica.ttc"),
+            "/System/Library/Fonts/Helvetica.ttc"),
             ("./fonts/Arial.ttf", "./fonts/Arial-Bold.ttf"),
         ]
     
@@ -51,13 +57,17 @@ class PosterCompositor:
         # If CJK support is required, prioritize CJK-compatible fonts
         if require_cjk:
             cjk_fonts = [
-                # macOS system fonts with Chinese character support
+                # Linux (Hetzner / Ubuntu)
+                ("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+                "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"),
+
+                # macOS (local dev)
                 ("/System/Library/Fonts/Hiragino Sans GB.ttc",
-                 "/System/Library/Fonts/Hiragino Sans GB.ttc"),
+                "/System/Library/Fonts/Hiragino Sans GB.ttc"),
                 ("/System/Library/Fonts/STHeiti Light.ttc",
-                 "/System/Library/Fonts/STHeiti Medium.ttc"),
+                "/System/Library/Fonts/STHeiti Medium.ttc"),
                 ("/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
-                 "/System/Library/Fonts/Supplemental/Arial Unicode.ttf"),
+                "/System/Library/Fonts/Supplemental/Arial Unicode.ttf"),
             ]
 
             for regular_path, bold_path in cjk_fonts:
@@ -74,7 +84,9 @@ class PosterCompositor:
 
             if os.path.exists(font_path):
                 try:
-                    return ImageFont.truetype(font_path, size)
+                    font = ImageFont.truetype(font_path, size)
+                    print(f"🈶 Using font: {font_path}")
+                    return font
                 except Exception:
                     continue
 
