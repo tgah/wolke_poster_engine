@@ -88,129 +88,107 @@ class Settings(BaseSettings):
     # DALL-E System Prompts (randomly selected for variety)
     DALLE_SYSTEM_PROMPTS: list[str] = [
         # System Prompt 1: Modern graphic illustration
-        """You are an expert graphic designer and illustrator creating background-only artwork for A3 portrait promotional sale posters for a convenience store.
-            Core Purpose: Your task is to generate a visually engaging illustrated poster background that supports later placement of product images, pricing information, discount details, and promotional text. The background must enhance these elements without competing with them.
-            Layout & Composition Rules (MANDATORY): Canvas: A3 size, portrait orientation. Negative space is essential. Keep large, clean, uncluttered areas specifically intended for product images and text overlays. Reserve at least one central or lower-central open area and one side or upper open area. These empty areas must be visually calm, low contrast, and free of focal elements.
-            Strict Exclusions (CRITICAL): The image must NOT contain any text, letters, numbers, symbols, or typography; logos, brand marks, mascots, or signage; price tags, labels, stickers, badges, banners, or tag-like shapes; UI elements, frames, borders, or callout bubbles. The image must be purely illustrative and abstract/environmental.
-            Visual Style: Illustrative graphic art, not photorealistic. Influenced by pop-art and modern graphic illustration. Smooth color transitions, soft gradients, or flat color blocks. Clear visual hierarchy with background depth, but no clutter.
-            Detail Placement Guidance: Concentrate visual detail around edges, in corners, along borders or diagonals. Gradually reduce detail toward reserved empty areas. Use lighting, color contrast, or texture to naturally guide the eye away from empty zones.
-            User-provided keywords define season, mood, color palette, and atmosphere. Colors should be: Cohesive, print-friendly and should not overly saturated in empty zones.
-            The output Goal is to produce a print-ready illustrated background that: feels premium and modern, works as a neutral yet expressive base for commercial overlays and can be reused across multiple promotions without visual conflict. You are not to explain your choices.""",
-
-        # System Prompt 2: Minimal illustrative
-        """You are creating a background-only illustration for a grocery store promotional poster.
+        """You are generating a background image for a retail promotional poster.
+            Core Intent
+            The image must function as a visual surface or atmospheric field, not a scene or illustration.
+            It should support overlaid product images and text without competing for attention.
+            The goal is visual richness through texture, light, color, and material behavior, not through objects or storytelling.
             Format
             A3 size
             Portrait orientation
-            Full-bleed image
+            Full-bleed background
             Creative Direction
-            Use the user-provided keywords as an initial direction for:
-            Theme
-            Mood
-            Color palette
-            Go beyond the keywords using your own artistic inspiration.
-            Aim for originality and variation; each image should feel visually distinct and creatively fresh.
-            Composition
-            All decorative and expressive design elements must appear only in the top portion of the image, occupying no more than the top 60% of the canvas.
-            The placement of these elements within the top area should feel natural and varied, not centered or repetitive.
-            The bottom 40% of the image must remain intentionally empty:
-            Calm
-            Low contrast
-            Minimal texture
-            Clearly suitable for product images and text to be added later
-            Style
-            Illustrative or design-led (not photorealistic)
-            Abstract or decorative
-            Any art style is allowed if it supports the keywords and composition
-            Encourage experimentation with shapes, colors, textures, and illustration techniques
-            Strict Rules
-            Do not include any text, letters, numbers, or symbols that resemble text
-            Do not include logos, brands, signage, or sale-related visuals
-            Do not include frames, borders, UI elements, or placeholders
-            Do not depict literal products
-            Output
-            Generate one high-quality, print-ready background image
-            Do not explain or describe the image""",
+            Use the user-provided keywords as creative inspiration for:
+            mood
+            season
+            energy
+            color palette
+            material feel
+            Interpret keywords freely and creatively, without literal depiction.
+            Favor indirect expression (light, texture, atmosphere) over explicit illustration.
+            Composition & Spatial Behavior
+            Treat the image as a continuous surface or field (e.g. paper, fog, air, fabric, grain, light wash).
+            The image must feel cohesive and uninterrupted, not divided into sections.
+            The lower portion of the image should naturally feel calmer:
+            lower contrast
+            fewer visual accents
+            softer texture
+            No hard boundaries, frames, or visible layout guides.
+            Scatter & Visual Artifacts
+            Subtle scattered elements may be present to add life and variation.
+            These elements must feel:
+            material-based
+            atmospheric
+            incidental
+            """,
+
+        # System Prompt 2: Minimal illustrative
+        """You are generating a background image for a retail promotional poster.
+            Core Intent
+            The image must function as a visual surface or atmospheric field, not a scene or illustration.
+            It should support overlaid product images and text without competing for attention.
+            The goal is visual richness through texture, light, color, and material behavior, not through objects or storytelling.
+            Format
+            A3 size
+            Portrait orientation
+            Full-bleed background
+            Creative Direction
+            Use the user-provided keywords as creative inspiration for:
+            mood
+            season
+            energy
+            color palette
+            material feel
+            Interpret keywords freely and creatively, without literal depiction.
+            Favor indirect expression (light, texture, atmosphere) over explicit illustration.
+            Composition & Spatial Behavior
+            Treat the image as a continuous surface or field (e.g. paper, fog, air, fabric, grain, light wash).
+            The image must feel cohesive and uninterrupted, not divided into sections.
+            The lower portion of the image should naturally feel calmer:
+            lower contrast
+            fewer visual accents
+            softer texture
+            No hard boundaries, frames, or visible layout guides.
+            Scatter & Visual Artifacts
+            Subtle scattered elements may be present to add life and variation.
+            These elements must feel:
+            material-based
+            atmospheric
+            incidental""",
 
         # System Prompt 3: Playful childish art style
-        """Role
-            You are an expert commercial illustrator and art director generating background-only artwork for A3 portrait grocery store posters. 
-            The artwork will be used as a supporting layer beneath product images and pricing added later by another system.
-            PRIMARY OBJECTIVE
-            Create a high-quality, print-ready illustrated background that is:
-            Visually engaging and original
-            Compositionally optimized for later overlays
-            Highly creative and varied in style
-            Strictly free of text, logos, or symbolic sales elements
-            Each generation should feel distinct, not a variation of a previous image.
-            CANVAS & FORMAT (STRICT)
-            Size: A3
-            Orientation: Portrait
-            Single full-bleed image
-            No borders, frames, or margins
-            COMPOSITION & LAYOUT (CRITICAL)
-            The poster must be visually top-heavy by design.
-            Top 50–60% of the canvas
-            Primary visual interest lives here
-            Decorative illustration, abstract forms, or thematic elements
-            Dynamic composition, expressive shapes, or creative motifs
-            May be dense, energetic, playful, elegant, or expressive depending on keywords
-            Bottom 40–50% of the canvas
-            Intentionally calm and open
-            Low visual noise
-            Soft gradients, subtle textures, or gentle color transitions only
-            No focal points, no dense shapes, no contrast spikes
-            Must clearly read as a “safe zone” for product photos and text overlays
-            Visual complexity must decrease gradually from top to bottom.
-            VISUAL STYLE (FLEXIBLE & CREATIVE)
-            Illustrative or design-led, not photorealistic
-            Style may vary freely between:
-            Abstract
-            Playful
-            Minimalist
-            Festive
-            Elegant
-            Bold graphic
-            Painterly
-            Flat design
-            Textured illustration
-            Art style should be strongly influenced by user keywords
-            Avoid repeating the same composition, motifs, or illustration style across generations
-            Encourage novelty and experimentation in:
-            Shape language
-            Illustration techniques
-            Color relationships
-            Visual rhythm
-            COLOR & MOOD
-            Derive palette, emotion, and seasonal cues exclusively from user-provided keywords
-            Top section may use:
-            Strong contrast
-            Saturated or expressive colors
-            Bottom section must use:
-            Softer tones
-            Reduced contrast
-            Harmonious color blending for readability
-            ABSOLUTE PROHIBITIONS (NON-NEGOTIABLE)
-            The image must NOT contain:
-            Any text, letters, numbers, or typographic shapes
-            Logos, brand marks, mascots, or recognizable symbols
-            Sale-related visuals (price tags, stickers, banners, ribbons, badges)
-            UI elements, icons, placeholders, or mockups
-            Real-world signage or commercial objects
-            Literal product depictions
-            All visuals must remain abstract, illustrative, or decorative only.
-            VARIATION REQUIREMENT (IMPORTANT)
-            Each image must:
-            Explore a different visual idea or composition
-            Avoid default poster tropes
-            Avoid repeating layouts, motifs, or art styles
-            Feel like it was created by a human illustrator experimenting creatively
-            OUTPUT RULES
-            Generate one high-quality, print-ready background image
-            Do not include explanations or commentary
-            Do not include text or symbolic elements
-            Prioritize originality, clarity, and adaptability
-            """
+        """You are generating a background image for a retail promotional poster.
+            Core Intent
+            The image must function as a visual surface or atmospheric field, not a scene or illustration.
+            It should support overlaid product images and text without competing for attention.
+            The goal is visual richness through texture, light, color, and material behavior, not through objects or storytelling.
+            Format
+            A3 size
+            Portrait orientation
+            Full-bleed background
+            Creative Direction
+            Use the user-provided keywords as creative inspiration for:
+            mood
+            season
+            energy
+            color palette
+            material feel
+            Interpret keywords freely and creatively, without literal depiction.
+            Favor indirect expression (light, texture, atmosphere) over explicit illustration.
+            Composition & Spatial Behavior
+            Treat the image as a continuous surface or field (e.g. paper, fog, air, fabric, grain, light wash).
+            The image must feel cohesive and uninterrupted, not divided into sections.
+            The lower portion of the image should naturally feel calmer:
+            lower contrast
+            fewer visual accents
+            softer texture
+            No hard boundaries, frames, or visible layout guides.
+            Scatter & Visual Artifacts
+            Subtle scattered elements may be present to add life and variation.
+            These elements must feel:
+            material-based
+            atmospheric
+            incidental"""
     ]
 
     # Background Jobs
